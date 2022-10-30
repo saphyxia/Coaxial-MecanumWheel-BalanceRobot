@@ -121,7 +121,7 @@ void ChassisTask(void const * argument)
 		hcanTxFrame.data[6] = (int16_t)LRout >> 8;
 		hcanTxFrame.data[7] = (int16_t)LRout;
 		
-//		USER_CAN_TxMessage(&hcan1,&hcanTxFrame);
+		USER_CAN_TxMessage(&hcan1,&hcanTxFrame);
 		
     osDelayUntil(&systick,1);
   }
