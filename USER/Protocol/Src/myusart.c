@@ -9,7 +9,7 @@
 
 #include "assist.h"
 
-RC_ctrl_t rc_ctrl;
+rc_ctrl_t rc_ctrl;
 Actline_t Presentline;
 
 uint8_t SBUS_rx_buf[2][SBUS_RX_BUF_NUM];
@@ -32,7 +32,7 @@ void myprintf(int16_t value_1,int16_t value_2)
 		HAL_UART_Transmit_DMA(&huart6,UART6_TX_BUF,UART6_MAX_TX_LEN);
 }
 
-static void RC_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
+static void rc_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 {
     //enable the DMA transfer for the receiver request
     //使能DMA串口接收
@@ -43,12 +43,10 @@ static void RC_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
     __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
 
     //disable DMA
-    //失效DMA
-    __HAL_DMA_DISABLE(huart3.hdmarx);
-    while(huart3.hdmarx->Instance->CR & DMA_SxCR_EN)
-    {
+    //失效DMA    
+    do{
         __HAL_DMA_DISABLE(huart3.hdmarx);
-    }
+    }while(huart3.hdmarx->Instance->CR & DMA_SxCR_EN);
 
     huart3.hdmarx->Instance->PAR = (uint32_t) & (USART3->DR);
     //memory buffer 1
@@ -71,11 +69,10 @@ static void RC_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 
 void remote_control_init(void)
 {
-    RC_init(SBUS_rx_buf[0], SBUS_rx_buf[1], SBUS_RX_BUF_NUM);
+    rc_init(SBUS_rx_buf[0], SBUS_rx_buf[1], SBUS_RX_BUF_NUM);
 }
 
-
-static void SBUS_TO_RC(volatile const uint8_t *sbus_buf, RC_ctrl_t  *rc_ctrl)
+static void SBUS_TO_RC(volatile const uint8_t *sbus_buf, rc_ctrl_t  *rc_ctrl)
 {
     if (sbus_buf == NULL || rc_ctrl == NULL) return;
 
@@ -182,7 +179,7 @@ void USER_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
     // 判断是否是串口1
     if(huart->Instance == USART1)
-    {	// 判断是否是空闲中断
+    {	   // 判断是否是空闲中断
         if(__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE) != RESET)
         {	 // 清除空闲中断标志（否则会一直不断进入中断）
             __HAL_UART_CLEAR_IDLEFLAG(huart);
@@ -190,13 +187,18 @@ void USER_UART_IRQHandler(UART_HandleTypeDef *huart)
             USAR_UART1_IDLECallback(huart);
         }
     }
+		// 判断是否是串口1
 		else if(huart->Instance == USART3)
-		{
+		{   // 判断是否是空闲中断
 		    if(__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE) != RESET)
         {	 // 清除空闲中断标志（否则会一直不断进入中断）
             __HAL_UART_CLEAR_IDLEFLAG(huart);
             // 调用中断处理函数
             USAR_UART3_IDLECallback(huart);
         }
+		}
+		else
+		{
+			return ;
 		}
 }

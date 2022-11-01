@@ -85,9 +85,9 @@ typedef  struct
             uint16_t B:1;
         }set;
     }key;
-} RC_ctrl_t;
+} rc_ctrl_t;
 
-extern RC_ctrl_t rc_ctrl;
+extern rc_ctrl_t rc_ctrl;
 
 extern uint8_t SBUS_rx_buf[2][SBUS_RX_BUF_NUM];
 

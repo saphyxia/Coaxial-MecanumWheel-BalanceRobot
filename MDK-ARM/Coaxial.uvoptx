@@ -215,6 +215,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>speed</ItemText>
         </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\Coaxial\../USER/Tasks/Src/ChassisTask.c\Upright.param.Deadband</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
@@ -297,7 +302,7 @@
 
   <Group>
     <GroupName>USER/Tasks</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -341,7 +346,7 @@
 
   <Group>
     <GroupName>USER/Protocol</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
