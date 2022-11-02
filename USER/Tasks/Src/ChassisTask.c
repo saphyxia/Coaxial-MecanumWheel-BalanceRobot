@@ -6,20 +6,50 @@
 #include "ChassisTask.h"
 #include "InsTask.h"
 
+#include "tim.h"
+
 #include "motor.h"
 #include "myusart.h"
-
 
 #include "pid.h"
 #include "kalman.h"
 
+bool IF_START_RUNNING = false;
+
+bool IF_GOAL_SWITCH = false;
+uint8_t switch_count =0;
+
+Actline_t Goalline;
+
 /*
- * 出发	(-100,1000)
+ * 出发	(-50,1000)
  * 隔板	(-750,2000) (-750,3000)
  * 取球	
  * 放球
 */
-Actline_t Goalline;
+ActPoint_t midTurn[3]=
+{
+	[0]={.x=-50  ,.y=1000},
+	[1]={.x=-750 ,.y=2000},
+	[2]={.x=-750 ,.y=3000},
+};
+ActPoint_t Ballpoint[2][5]=
+{
+	[0]={
+		[0]={.x=75  ,.y=4300},
+		[1]={.x=-50 ,.y=4000},
+		[2]={.x=-50 ,.y=4000},
+		[3]={.x=-50 ,.y=4000},
+		[4]={.x=-50 ,.y=4000},
+	},
+	[1]={
+		[0]={.x=-0 ,.y=0},
+		[1]={.x=-0 ,.y=0},
+		[2]={.x=-0 ,.y=0},
+		[3]={.x=-0 ,.y=0},
+		[4]={.x=-0 ,.y=0},
+	},
+};
 
 //PID
 PID_TypeDef_t Upright,Speed,Gyro,LLspiral,LRspiral,RLspiral,RRspiral,Posture_X,Posture_Y,Turn;
@@ -27,14 +57,14 @@ PID_TypeDef_t Upright,Speed,Gyro,LLspiral,LRspiral,RLspiral,RRspiral,Posture_X,P
 //一阶低通
 Lowpass_Filter_t LLspeed,LRspeed,RLspeed,RRspeed,Pit_gyro;
 
-
-float midangle = -4.f;
+uint16_t PWM_OUT[5]={0};
+float midangle = -4.5f;
 
 float LLout,LRout,RLout,RRout,Upout,speedout,trunout,speed = 0.f,gyro = 0;
 
 //全向移动解算
 float Omni[4]={0.f,};
-float target_x,target_y,target_w;
+float target[3];
 
 //kalman
 extKalman_t Gyro_Kalman;
@@ -44,6 +74,7 @@ static float f_FirstOrder_Lowpass_Filter(Lowpass_Filter_t *std,float value,float
 static float f_CcltAngleAdd(float angle1, float angle2);
 static float f_Posture_Solution(Actline_t *real,Actline_t *goal);
 static float f_AngleErr_Solution(float realAngle,float goalAngle);
+static void Omni_Motion_Solution(float *result,float *target);
 
 /* USER CODE BEGIN Header_ChassisTask */
 /**
@@ -62,8 +93,8 @@ void ChassisTask(void const * argument)
 	PID_Init(&Posture_X,0.f, 600.f, 1000.f,  0.f,    0.f,   0.f); // 
 	PID_Init(&Posture_Y,0.f, 800.f, 1000.f,  0.f,    0.f,   0.f); //p:8 
 	PID_Init(&Turn,     0.f, 500.f, 1000.f,  0.f,    0.f,   0.f); //p:100
-	PID_Init(&Upright,  0.f, 0.f,   1000.f,  16.f,   0.f,   40.f); //p:14 
-	PID_Init(&Gyro,     0.f, 2000.f,10000.f, 18.f,   0.7f,  160.f); //p:18 i:0.6 d:200
+	PID_Init(&Upright,  0.f, 0.f,   1200.f,  14.f,   0.f,   0.f); //p:14 
+	PID_Init(&Gyro,     0.f, 2000.f,10000.f, 18.f,   0.6f,  200.f); //p:18 i:0.6 d:200
 	PID_Init(&LLspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	PID_Init(&LRspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	PID_Init(&RLspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
@@ -75,17 +106,36 @@ void ChassisTask(void const * argument)
   for(;;)
   {
 		systick = osKernelSysTick();
+		
+//		__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_1,PWM_OUT[0]);
+//		__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,PWM_OUT[1]);
+//		__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_3,PWM_OUT[2]);
+//		__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_4,PWM_OUT[3]);
+//		__HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,PWM_OUT[4]);
 
 		speed = ( - f_FirstOrder_Lowpass_Filter(&LLspeed,Balance[Left_LSpiral].Data.velocity,0.9f) \
 							+ f_FirstOrder_Lowpass_Filter(&LRspeed,Balance[Left_RSpiral].Data.velocity,0.9f) \
 							- f_FirstOrder_Lowpass_Filter(&RRspeed,Balance[Right_RSpiral].Data.velocity,0.9f) \
 							+ f_FirstOrder_Lowpass_Filter(&RLspeed,Balance[Right_LSpiral].Data.velocity,0.9f) )/4.f;
-		//路程环
-		target_y = f_PID_Calculate(&Posture_Y,f_Posture_Solution(&Presentline,&Goalline));
+		
+		if(IF_GOAL_SWITCH)
+		{
+			Goalline.point = midTurn[switch_count];
+			switch_count++;
+			if(switch_count > 2)switch_count=2;
+			IF_GOAL_SWITCH = 0;
+		}
+		
+		if(IF_START_RUNNING)
+		{
+			//路程环
+			target[1] = f_PID_Calculate(&Posture_Y,f_Posture_Solution(&Presentline,&Goalline));
+		}
+		
 		//转向环
 		trunout  = f_PID_Calculate(&Turn,f_AngleErr_Solution(Presentline.angle,Goalline.angle));
 		//速度环
-		speedout = f_PID_Calculate(&Speed,speed - target_y);//p
+		speedout = f_PID_Calculate(&Speed,speed - target[1]);//p
 		//直立环
 		Upout    = f_PID_Calculate(&Upright,speedout + midangle - Imu.pit_angle);//pd
 
@@ -95,13 +145,13 @@ void ChassisTask(void const * argument)
 		//角速度环
 		gyro = f_PID_Calculate(&Gyro,Upout - Imu.pit_gyro);//pid
 
-//		Omni_Posture_Solution(Omni,&target_x,&target_y,&target_w);
+		Omni_Motion_Solution(Omni,target);
 
 		//注意极性与整车速度解算一致
-		LLout = f_PID_Calculate(&LLspiral,-gyro+trunout - Balance[Left_LSpiral].Data.velocity);
-		LRout = f_PID_Calculate(&LRspiral, gyro-trunout - Balance[Left_RSpiral].Data.velocity);
-		RRout = f_PID_Calculate(&RRspiral,-gyro-trunout - Balance[Right_RSpiral].Data.velocity);
-		RLout = f_PID_Calculate(&RLspiral, gyro+trunout - Balance[Right_LSpiral].Data.velocity);
+		LLout = f_PID_Calculate(&LLspiral,-gyro+trunout+Omni[1] - Balance[Left_LSpiral].Data.velocity);
+		LRout = f_PID_Calculate(&LRspiral, gyro-trunout+Omni[0] - Balance[Left_RSpiral].Data.velocity);
+		RRout = f_PID_Calculate(&RRspiral,-gyro-trunout+Omni[3] - Balance[Right_RSpiral].Data.velocity);
+		RLout = f_PID_Calculate(&RLspiral, gyro+trunout+Omni[2] - Balance[Right_LSpiral].Data.velocity);
 		
 //		myprintf(Imu.pit_gyro,gyro);
 		
@@ -235,3 +285,11 @@ static float f_AngleErr_Solution(float realAngle,float goalAngle)
 	return angleErr;
 }
 
+static void Omni_Motion_Solution(float *result,float *target)
+{
+	//全向移动解算
+	result[0] = 1.0f / M_R * ( target[0] + target[1] + (M_L + M_LW)/ 2.f * target[2]);
+	result[1] = 1.0f / M_R * ( target[0] - target[1] + (M_L + M_LW)/ 2.f * target[2]);
+	result[2] = 1.0f / M_R * (-target[0] + target[1] + (M_L + M_LW)/ 2.f * target[2]);
+	result[3] = 1.0f / M_R * (-target[0] - target[1] + (M_L + M_LW)/ 2.f * target[2]);
+}
