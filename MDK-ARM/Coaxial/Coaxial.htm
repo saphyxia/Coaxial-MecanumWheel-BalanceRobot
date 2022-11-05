@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Coaxial\Coaxial.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Coaxial\Coaxial.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6180002: Last Updated: Tue Nov  1 21:07:05 2022
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6180002: Last Updated: Sun Nov  6 03:53:27 2022
 <BR><P>
 <H3>Maximum Stack Usage =        272 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -509,7 +509,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[67]"></a>ChassisTask</STRONG> (Thumb, 2052 bytes, Stack size 8 bytes, chassistask.o(.text.ChassisTask))
+<P><STRONG><a name="[67]"></a>ChassisTask</STRONG> (Thumb, 1982 bytes, Stack size 8 bytes, chassistask.o(.text.ChassisTask))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = ChassisTask &rArr; osDelayUntil &rArr; vTaskDelayUntil &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelayUntil
@@ -1922,9 +1922,9 @@ Global Symbols
 <P><STRONG><a name="[fa]"></a>xTaskGetHandle</STRONG> (Thumb, 166 bytes, Stack size 24 bytes, tasks.o(.text.xTaskGetHandle))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = xTaskGetHandle &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
-<BR>[Calls]<UL><LI><a href="#[128]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTaskResumeAll
+<BR>[Calls]<UL><LI><a href="#[130]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvSearchForNameWithinSingleList
+<LI><a href="#[128]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTaskResumeAll
 <LI><a href="#[12f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
-<LI><a href="#[130]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvSearchForNameWithinSingleList
 </UL>
 <BR>[Called By]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartInsTask
 </UL>

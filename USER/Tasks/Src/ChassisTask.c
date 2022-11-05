@@ -14,42 +14,7 @@
 #include "pid.h"
 #include "kalman.h"
 
-bool IF_START_RUNNING = false;
-
-bool IF_GOAL_SWITCH = false;
-uint8_t switch_count =0;
-
 Actline_t Goalline;
-
-/*
- * 出发	(-50,1000)
- * 隔板	(-750,2000) (-750,3000)
- * 取球	
- * 放球
-*/
-ActPoint_t midTurn[3]=
-{
-	[0]={.x=-50  ,.y=1000},
-	[1]={.x=-750 ,.y=2000},
-	[2]={.x=-750 ,.y=3000},
-};
-ActPoint_t Ballpoint[2][5]=
-{
-	[0]={
-		[0]={.x=75  ,.y=4300},
-		[1]={.x=-50 ,.y=4000},
-		[2]={.x=-50 ,.y=4000},
-		[3]={.x=-50 ,.y=4000},
-		[4]={.x=-50 ,.y=4000},
-	},
-	[1]={
-		[0]={.x=-0 ,.y=0},
-		[1]={.x=-0 ,.y=0},
-		[2]={.x=-0 ,.y=0},
-		[3]={.x=-0 ,.y=0},
-		[4]={.x=-0 ,.y=0},
-	},
-};
 
 //PID
 PID_TypeDef_t Upright,Speed,Gyro,LLspiral,LRspiral,RLspiral,RRspiral,Posture_X,Posture_Y,Turn;
@@ -117,21 +82,10 @@ void ChassisTask(void const * argument)
 							+ f_FirstOrder_Lowpass_Filter(&LRspeed,Balance[Left_RSpiral].Data.velocity,0.9f) \
 							- f_FirstOrder_Lowpass_Filter(&RRspeed,Balance[Right_RSpiral].Data.velocity,0.9f) \
 							+ f_FirstOrder_Lowpass_Filter(&RLspeed,Balance[Right_LSpiral].Data.velocity,0.9f) )/4.f;
-		
-		if(IF_GOAL_SWITCH)
-		{
-			Goalline.point = midTurn[switch_count];
-			switch_count++;
-			if(switch_count > 2)switch_count=2;
-			IF_GOAL_SWITCH = 0;
-		}
-		
-		if(IF_START_RUNNING)
-		{
-			//路程环
-			target[1] = f_PID_Calculate(&Posture_Y,f_Posture_Solution(&Presentline,&Goalline));
-		}
-		
+
+		//路程环
+		target[1] = f_PID_Calculate(&Posture_Y,f_Posture_Solution(&Presentline,&Goalline));
+
 		//转向环
 		trunout  = f_PID_Calculate(&Turn,f_AngleErr_Solution(Presentline.angle,Goalline.angle));
 		//速度环
