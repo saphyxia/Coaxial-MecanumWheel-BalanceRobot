@@ -1,6 +1,6 @@
 # **[Coaxial-MecanumWheel-BalanceRobot](https://github.com/saphyxia/Coaxial-MecanumWheel-BalanceRobot)**
 
-Coaxial Mecanum wheel BalanceRobot
+Coaxial MecanumWheel BalanceRobot
 
 ## 依赖工具及软硬件环境
 
