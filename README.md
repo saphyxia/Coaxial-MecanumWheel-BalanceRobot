@@ -19,3 +19,7 @@ C/C++编译
 ## 项目中断
 
 存在问题：麦轮受力不均、底盘打滑，无法达到完成赛事需求的自动定位标准。
+
+## 车体框架
+
+![coaxial](C:\ECG\Coaxial\README.assets\coaxial.jpg)
