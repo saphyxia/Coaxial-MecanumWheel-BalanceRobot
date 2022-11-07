@@ -23,16 +23,20 @@ PID_TypeDef_t Upright,Speed,Gyro,LLspiral,LRspiral,RLspiral,RRspiral,Posture_X,P
 Lowpass_Filter_t LLspeed,LRspeed,RLspeed,RRspeed,Pit_gyro;
 
 uint16_t PWM_OUT[5]={0};
-float midangle = -4.5f;
+float midangle = -6.3f;
 
 float LLout,LRout,RLout,RRout,Upout,speedout,trunout,speed = 0.f,gyro = 0;
+
+bool IF_Action_Lost = false;
 
 //全向移动解算
 float Omni[4]={0.f,};
 float target[3];
 
+uint16_t Pos_Deadband = 0;
+
 //kalman
-extKalman_t Gyro_Kalman;
+extKalman_t Gyro_Kalman,LLkalman,LRkalman,RLkalman,RRkalman;
 
 /* Private function prototypes -----------------------------------------------------*/
 static float f_FirstOrder_Lowpass_Filter(Lowpass_Filter_t *std,float value,float k);
@@ -54,19 +58,18 @@ void ChassisTask(void const * argument)
   /* USER CODE BEGIN ChassisTask */
 	TickType_t systick = 0;
 	
-	PID_Init(&Speed,    0.f, 0.f,   8.f,     0.001f, 0.f,   0.f); //p:0.001
-	PID_Init(&Posture_X,0.f, 600.f, 1000.f,  0.f,    0.f,   0.f); // 
-	PID_Init(&Posture_Y,0.f, 800.f, 1000.f,  0.f,    0.f,   0.f); //p:8 
-	PID_Init(&Turn,     0.f, 500.f, 1000.f,  0.f,    0.f,   0.f); //p:100
-	PID_Init(&Upright,  0.f, 0.f,   1200.f,  14.f,   0.f,   0.f); //p:14 
-	PID_Init(&Gyro,     0.f, 2000.f,10000.f, 18.f,   0.6f,  200.f); //p:18 i:0.6 d:200
+	PID_Init(&Speed,    0.f, 0.f,   5.f,     0.001f, 0.f,   0.f); //p:0.001
+	PID_Init(&Posture_X,0.f, 600.f, 2000.f,  0.f,    0.f,   0.f); // 
+	PID_Init(&Posture_Y,0.f, 800.f, 2000.f,  0.f,    0.f,   0.f); //p:8 
+	PID_Init(&Turn,     0.f, 0.f,   600.f,   0.f,    0.f,   0.f); //p:-100
+	PID_Init(&Upright,  0.f, 0.f,   2000.f,  14.f,   0.f,   0.f); //p:14 
+	PID_Init(&Gyro,     0.f, 2000.f,10000.f, 0.f,    0.f,   0.f); //p:12 i:0.6 d:180
 	PID_Init(&LLspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	PID_Init(&LRspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	PID_Init(&RLspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	PID_Init(&RRspiral, 0.f, 2000.f,10000.f, 13.2f,  0.2f,  0.f);
 	
 	KalmanCreate(&Gyro_Kalman,1,40);
-
   /* Infinite loop */	
   for(;;)
   {
@@ -85,9 +88,10 @@ void ChassisTask(void const * argument)
 
 		//路程环
 		target[1] = f_PID_Calculate(&Posture_Y,f_Posture_Solution(&Presentline,&Goalline));
-
+		
 		//转向环
-		trunout  = f_PID_Calculate(&Turn,f_AngleErr_Solution(Presentline.angle,Goalline.angle));
+		target[2]  = f_PID_Calculate(&Turn,f_AngleErr_Solution(Presentline.angle,Goalline.angle));
+		
 		//速度环
 		speedout = f_PID_Calculate(&Speed,speed - target[1]);//p
 		//直立环
@@ -102,27 +106,27 @@ void ChassisTask(void const * argument)
 		Omni_Motion_Solution(Omni,target);
 
 		//注意极性与整车速度解算一致
-		LLout = f_PID_Calculate(&LLspiral,-gyro+trunout+Omni[1] - Balance[Left_LSpiral].Data.velocity);
-		LRout = f_PID_Calculate(&LRspiral, gyro-trunout+Omni[0] - Balance[Left_RSpiral].Data.velocity);
-		RRout = f_PID_Calculate(&RRspiral,-gyro-trunout+Omni[3] - Balance[Right_RSpiral].Data.velocity);
-		RLout = f_PID_Calculate(&RLspiral, gyro+trunout+Omni[2] - Balance[Right_LSpiral].Data.velocity);
+		LLout = f_PID_Calculate(&LLspiral,-gyro+Omni[1] - Balance[Left_LSpiral].Data.velocity);
+		LRout = f_PID_Calculate(&LRspiral, gyro+Omni[0] - Balance[Left_RSpiral].Data.velocity);
+		RRout = f_PID_Calculate(&RRspiral,-gyro+Omni[3] - Balance[Right_RSpiral].Data.velocity);
+		RLout = f_PID_Calculate(&RLspiral, gyro+Omni[2] - Balance[Right_LSpiral].Data.velocity);
 		
-//		myprintf(Imu.pit_gyro,gyro);
+		myprintf(Imu.pit_angle*10,midangle*10);
 		
 		//倒地判断
-		if(ABS(Imu.pit_angle) > 30){
+		if(ABS(Imu.pit_angle) > 28){
 			LLout = f_PID_Calculate(&LLspiral,0 - Balance[Left_LSpiral].Data.velocity);
 			LRout = f_PID_Calculate(&LRspiral,0 - Balance[Left_RSpiral].Data.velocity);
 			RRout = f_PID_Calculate(&RRspiral,0 - Balance[Right_RSpiral].Data.velocity);
 			RLout = f_PID_Calculate(&RLspiral,0 - Balance[Right_LSpiral].Data.velocity);
 		}
 
-		hcanTxFrame.data[0] = (int16_t)RLout >> 8;
-		hcanTxFrame.data[1] = (int16_t)RLout;
+		hcanTxFrame.data[0] = (int16_t)LLout >> 8;
+		hcanTxFrame.data[1] = (int16_t)LLout;
 		hcanTxFrame.data[2] = (int16_t)RRout >> 8;
 		hcanTxFrame.data[3] = (int16_t)RRout;
-		hcanTxFrame.data[4] = (int16_t)LLout >> 8;
-		hcanTxFrame.data[5] = (int16_t)LLout;
+		hcanTxFrame.data[4] = (int16_t)RLout >> 8;
+		hcanTxFrame.data[5] = (int16_t)RLout;
 		hcanTxFrame.data[6] = (int16_t)LRout >> 8;
 		hcanTxFrame.data[7] = (int16_t)LRout;
 		
@@ -209,11 +213,11 @@ static float f_Posture_Solution(Actline_t *real,Actline_t *goal)
 		
 		result = sqrtf(powf((real->point.x-goal->point.x),2.f)+powf((real->point.y-goal->point.y),2.f)) *Forward_Switch;
 		
-//		if(ABS(result)<50.f)
-//		{
-//			result = 0.f;
-//			goal->angle =90.f;
-//		}
+		if(ABS(result) < Pos_Deadband)
+		{
+			result = 0.f;
+			goal->angle =90.f;
+		}
 	
 		return result;
 }

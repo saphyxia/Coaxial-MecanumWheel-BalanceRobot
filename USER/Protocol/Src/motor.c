@@ -9,7 +9,7 @@ DJI_MOTOR Balance[MOTOR_NUM]=
 	[Right_LSpiral] = {
 			.CANx = CAN1,
 			.type = _3508,
-			.Data.StdId = 0x201,
+			.Data.StdId = 0x203,
 			.usage = Right_LSpiral,
 	},
 	[Right_RSpiral] = {
@@ -21,7 +21,7 @@ DJI_MOTOR Balance[MOTOR_NUM]=
 	[Left_LSpiral] = {
 			.CANx = CAN1,
 			.type = _3508,
-			.Data.StdId = 0x203,
+			.Data.StdId = 0x201,
 			.usage = Left_LSpiral,
 	},
 	[Left_RSpiral] = {

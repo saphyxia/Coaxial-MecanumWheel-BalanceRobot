@@ -188,47 +188,42 @@
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc_ctrl,0x0A</ItemText>
+          <ItemText>Turn</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Turn</ItemText>
+          <ItemText>Goalline</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Goalline</ItemText>
+          <ItemText>Presentline</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Presentline</ItemText>
+          <ItemText>Posture_Y</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Posture_Y</ItemText>
+          <ItemText>Pos_Deadband,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>IF_START_RUNNING,0x0A</ItemText>
+          <ItemText>\\Coaxial\../USER/Tasks/Src/ChassisTask.c\Turn.param.kp</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>IF_GOAL_SWITCH,0x0A</ItemText>
+          <ItemText>target</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>switch_count,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>13</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>target</ItemText>
+          <ItemText>Omni</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
