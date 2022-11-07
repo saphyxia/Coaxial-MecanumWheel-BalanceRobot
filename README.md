@@ -1,4 +1,4 @@
-# **[Coaxial-Mecanum-wheel-BalanceRobot](https://github.com/saphyxia/Coaxial-Mecanum-wheel-BalanceRobot)**
+# **[Coaxial-MecanumWheel-BalanceRobot](https://github.com/saphyxia/Coaxial-MecanumWheel-BalanceRobot)**
 
 Coaxial Mecanum wheel BalanceRobot
 
