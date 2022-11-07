@@ -22,5 +22,5 @@ C/C++编译
 
 ## 车体框架
 
-![coaxial](..\Coaxial-Mecanum-wheel-BalanceRobot\README.assets\coaxial.jpg)
+![coaxial](https://github.com/saphyxia/Coaxial-Mecanum-wheel-BalanceRobot/README.assets/coaxial.jpg)
 
