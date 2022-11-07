@@ -209,11 +209,11 @@ static float f_Posture_Solution(Actline_t *real,Actline_t *goal)
 		
 		result = sqrtf(powf((real->point.x-goal->point.x),2.f)+powf((real->point.y-goal->point.y),2.f)) *Forward_Switch;
 		
-		if(ABS(result)<50.f)
-		{
-			result = 0.f;
-			goal->angle =90.f;
-		}
+//		if(ABS(result)<50.f)
+//		{
+//			result = 0.f;
+//			goal->angle =90.f;
+//		}
 	
 		return result;
 }
@@ -226,12 +226,12 @@ static float f_Posture_Solution(Actline_t *real,Actline_t *goal)
 */
 static float f_AngleErr_Solution(float realAngle,float goalAngle)
 {
-	float angleErr =0;
+	float angleErr = f_CcltAngleAdd(goalAngle,realAngle);
 	
-	if(f_CcltAngleAdd(goalAngle,realAngle)>=0.f)
+	if(angleErr > 1.f)
 	{
 		angleErr = sqrtf(f_CcltAngleAdd(goalAngle,realAngle));
-	}else
+	}else if(angleErr < -1.f)
 	{
 		angleErr = -sqrtf(-f_CcltAngleAdd(goalAngle,realAngle));
 	}
