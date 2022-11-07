@@ -1,6 +1,4 @@
-# Coaxial
-
-> 2022辽宁省机器人竞赛 USTL共轴麦克纳姆轮固件
+# **[Coaxial-Mecanum-wheel-BalanceRobot](https://github.com/saphyxia/Coaxial-Mecanum-wheel-BalanceRobot)**
 
 ## 依赖工具及软硬件环境
 
