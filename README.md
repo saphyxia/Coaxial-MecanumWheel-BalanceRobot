@@ -1,5 +1,7 @@
 # **[Coaxial-Mecanum-wheel-BalanceRobot](https://github.com/saphyxia/Coaxial-Mecanum-wheel-BalanceRobot)**
 
+Coaxial Mecanum wheel BalanceRobot
+
 ## 依赖工具及软硬件环境
 
 工具：VSCode,Keil5
@@ -20,4 +22,5 @@ C/C++编译
 
 ## 车体框架
 
-![coaxial](C:\ECG\Coaxial\README.assets\coaxial.jpg)
+![coaxial](..\Coaxial-Mecanum-wheel-BalanceRobot\README.assets\coaxial.jpg)
+
